@@ -1,0 +1,65 @@
+name: Build Android APK
+
+# Define cuándo se ejecutará esta acción
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: # Permite ejecución manual
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # Usamos un servidor Linux en la nube
+
+    steps:
+    # 1. Descarga tu código del repositorio
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # 2. Configura Node.js
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    # 3. Configura Java (necesario para Android)
+    - name: Set up Java JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    # 4. Instala las dependencias del proyecto (dentro de la subcarpeta)
+    - name: Install dependencies
+      run: npm install
+      working-directory: ./app-strapi # <-- La corrección clave
+
+    # 5. Construye el proyecto Vue (dentro de la subcarpeta)
+    - name: Build Vue App
+      run: npm run build
+      working-directory: ./app-strapi # <-- La corrección clave
+
+    # 6. Instala Capacitor CLI globalmente
+    - name: Install Capacitor CLI
+      run: npm install -g @capacitor/cli
+
+    # 7. Sincroniza Capacitor (dentro de la subcarpeta)
+    - name: Sync Capacitor Android
+      run: npx cap sync android
+      working-directory: ./app-strapi # <-- La corrección clave
+
+    # 8. Da permisos de ejecución a Gradle (importante en Linux)
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+      working-directory: ./app-strapi/android # El script gradlew está aquí
+
+    # 9. Construye el APK (modo Debug por defecto)
+    - name: Build Android APK
+      run: ./gradlew assembleDebug # Cambia a assembleRelease para la versión final
+      working-directory: ./app-strapi/android # El script gradlew está aquí
+
+    # 10. Sube el APK generado como un artefacto
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-debug-apk # Nombre del archivo descargable
+        path: app-strapi/android/app/build/outputs/apk/debug/app-debug.apk # Ruta al APK generado
