@@ -16,12 +16,13 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        # Actualizado a la última versión LTS (actualmente 20)
+        node-version: '20' 
 
-    - name: Set up Java JDK 17
+    - name: Set up Java JDK 21 # <-- Updated Java version here
       uses: actions/setup-java@v4
       with:
-        java-version: '17'
+        java-version: '21' # <-- Changed from 17 to 21
         distribution: 'temurin'
 
     # Ejecuta npm install en la raíz del repositorio
@@ -57,3 +58,4 @@ jobs:
         name: app-debug-apk # Nombre del archivo descargable
         # La ruta del APK sigue siendo relativa a la raíz
         path: android/app/build/outputs/apk/debug/app-debug.apk
+
